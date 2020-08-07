@@ -1,0 +1,7 @@
+# PostgreSQL
+# ------------------------------------------------------------------------------
+POSTGRES_HOST=postgres
+POSTGRES_PORT=5432
+POSTGRES_DB=channels_playground
+POSTGRES_USER=qMAFosFTLgXWoOvsLoEtKsWjClLVSvnZ
+POSTGRES_PASSWORD=5RpxAX34AqhXOPoHuUCCIx2YrufrsReTQ6YFQeqHCq2ZQ0oRX0u4HGGEUYyWDv4v
