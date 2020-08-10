@@ -8,10 +8,19 @@ from django.views.generic import TemplateView
 urlpatterns = [
     path("", TemplateView.as_view(template_name="pages/home.html"), name="home"),
     path(
-        "about/", TemplateView.as_view(template_name="pages/about.html"), name="about"
+        "about/",
+        TemplateView.as_view(template_name="pages/about.html"),
+        name="about"
     ),
     path(
-        "rxjs/", TemplateView.as_view(template_name="pages/rxjs.html"), name="rxjs"
+        "rxjs-basic/",
+        TemplateView.as_view(template_name="pages/rxjs.html"),
+        name="rxjs-basic"
+    ),
+    path(
+        "rxjs-django-auth/",
+        TemplateView.as_view(template_name="pages/rxjs-django-auth.html"),
+        name="rxjs-django-auth"
     ),
     # Django Admin, use {% url 'admin:index' %}
     path(settings.ADMIN_URL, admin.site.urls),

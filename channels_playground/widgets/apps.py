@@ -3,7 +3,7 @@ from django.utils.translation import gettext_lazy as _
 
 
 class WidgetsConfig(AppConfig):
-    name = 'widgets'
+    name = 'channels_playground.widgets'
     verbose_name = _("Widgets")
 
     def ready(self):

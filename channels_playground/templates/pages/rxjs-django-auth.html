@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Channels with django user auth, using rxjs{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1 class="text-center">Channels demo with django authorization.</h1>
+  <p class="lead text-muted text-center">
+    This is an example of using RxJS to connect to the basic Widget WebSockets (json and
+    text). Open a <a href='/admin/widgets/widget/' target='_blank'>separate admin window</a>
+    and add/update/delete widget instances to see the realtime websocket response below.
+  </p>
+  <!-- JSON-based WebSocket Card -->
+  <div class="card mt-5" id="json-card">
+    <h5 class="card-header">
+      JSON-based WebSocket [Status: <span id="json-status">Connecting...</span>]
+    </h5>
+    <div class="card-body">
+      <div class="alert alert-primary" role="alert" id="json-message-alert">
+        <h6>Message</h6>
+        <p id='json-message-data' class='mb-0'>No messages to display.</p>
+      </div>
+      <div class="alert alert-secondary" role="alert" id="json-raw-alert">
+        <h6>Raw Response</h6>
+        <pre id='json-raw-data' class='mb-0'>No raw message data to display.</pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="alert alert-danger" role="alert" id="login-required-alert" hidden="true">
+    <h6>Login Required</h6>
+    <p class='mb-0'>This websocket connection requires you to be logged in.</p>
+  </div>
+  {% endblock content %}
+
+  {% block javascript %}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/6.6.2/rxjs.umd.min.js"
+    integrity="sha512-kN8bAZFoIra6Z7dDPNMD3efoGLn7QpOZgBcNpLwKIoBM5rXLVxt9nPHNo+4WrIsT0RBc/h2sXtN08n1ALxn4yw=="
+    crossorigin="anonymous"></script>
+
+  <script>
+    // Once the window/scripts/etc. have all been loaded, set up our json and text websockets.
+    window.onload = (event) => {
+      setupJsonWebsocket();
+    }
+    var unauthorized = false;
+    /**
+     * Sets up a subscribed RxJS webSocketSubject that connects to the server's JSON widgets websocket
+     * channel.  This example uses RxJS' retryWhen operator to attempt reconnection if the websocket
+     * disconnects.  Data returned from the server is json, and is (by default) deserialized into a
+     * javascript object, which is then used to populate the RxJS json card alerts.  The openObserver
+     * parameter is also set to update a status element, showing the user the websocket connection status
+     */
+    const setupJsonWebsocket = () => {
+      // Loading webSocket, retryWhen, and delay from rxjs.
+      const webSocket = rxjs.webSocket.webSocket;
+      const webSocketSubject = rxjs.webSocketSubject;
+      const retryWhen = rxjs.operators.retryWhen;
+      const delay = rxjs.operators.delay;
+
+      // Create a webSocket subject, connecting to the ws widgets/json endpoint.
+      const jsonSubject = webSocket({
+        url: 'ws://localhost:8888/ws/widgets/django-auth/json/',
+        openObserver: {
+          next: () => {
+            document.getElementById('json-status').innerHTML = "Connected!"
+          }
+        },
+        closeObserver: {
+          next: (event) => {
+            if (event.code === 4401) {
+              unauthorized = true;
+              document.getElementById('json-card').hidden = true;
+              document.getElementById('login-required-alert').hidden = false;
+            }
+          }
+        }
+      });
+
+      // Add a reconnect if connection dies using rxjs' subject pipe operator
+      // then subscribe to any messages received by the subject.
+      jsonSubject.pipe(
+        // If we are disconnected, wait 5000ms before attempting to reconnect.
+        retryWhen((err) => {
+          document.getElementById('json-status').innerHTML = "Disconnected!  Attempting reconnection shortly..."
+          return err.pipe(delay(5000));
+        })
+      ).subscribe(
+        // Once we receieve a message from the server, put the message in our
+        // alert div, and the raw response in the raw-data div.
+        resp => {
+          document.getElementById('json-message-data').innerHTML = resp.message;
+          document.getElementById('json-raw-data').innerHTML = `${JSON.stringify(resp, undefined, 2)}`;
+        },
+      );
+    }
+  </script>
+  {% endblock javascript %}

@@ -2,10 +2,13 @@
 // https://github.com/microsoft/vscode-dev-containers/tree/master/containers/docker-existing-docker-compose
 {
   // See https://aka.ms/vscode-remote/devcontainer.json for format details.
-  "name": "Server Dev VSCode",
+  "name": "Channels Playground Dev",
   // Update the 'dockerComposeFile' list if you have more compose files or use different names.
   // The .devcontainer/docker-compose.yml file contains any overrides you need/want to make.
-  "dockerComposeFile": ["../local.yml", "docker-compose.yml"],
+  "dockerComposeFile": [
+    "../local.yml",
+    "docker-compose.yml"
+  ],
   // The 'service' property is the name of the service for the container that VS Code should
   // use. Update this value and .devcontainer/docker-compose.yml to the real service name.
   "service": "django",
@@ -17,7 +20,9 @@
   // Uncomment the next line if you want to add in default container specific settings.json values
   // "settings":  { "workbench.colorTheme": "Quiet Light" },
   // Uncomment the next line to run commands after the container is created - for example installing git.
-  // "postCreateCommand": "apt-get update && apt-get install -y git",
+  "postCreateCommand": "apt-get update && apt-get install -y git",
   // Add the IDs of any extensions you want installed in the array below.
-  "extensions": ["ms-python.python"]
+  "extensions": [
+    "ms-python.python"
+  ]
 }
