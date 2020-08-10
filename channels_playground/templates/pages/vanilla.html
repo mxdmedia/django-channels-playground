@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Basic Channels using Vanilla Javascript{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1 class="text-center">Channels demo using RxJS</h1>
+  <p class="lead text-muted text-center">
+    This is an example of using Vanilla Javascript to connect to the basic Widget WebSockets (json and
+    text). Open a <a href='/admin/widgets/widget/' target='_blank'>separate admin window</a>
+    and add/update/delete widget instances to see the realtime websocket response below.
+  </p>
+  <!-- JSON-based WebSocket Card -->
+  <div class="card mt-5">
+    <h5 class="card-header">
+      JSON-based WebSocket [Status: <span id="json-status">Connecting...</span>]
+    </h5>
+    <div class="card-body">
+      <div class="alert alert-primary" role="alert" id="json-message-alert">
+        <h6>Message</h6>
+        <p id='json-message-data' class='mb-0'>No messages to display.</p>
+      </div>
+      <div class="alert alert-secondary" role="alert" id="json-raw-alert">
+        <h6>Raw Response</h6>
+        <pre id='json-raw-data' class='mb-0'>No raw message data to display.</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Text-based WebSocket Card -->
+  <div class="card mt-3">
+    <h5 class="card-header">
+      Text/Binary-based WebSocket [Status: <span id="text-status">Connecting...</span>]
+    </h5>
+    <div class="card-body">
+      <div class="alert alert-primary" role="alert" id="text-message-alert">
+        <h6>Message</h6>
+        <p id='text-message-data' class='mb-0'>No messages to display.</p>
+      </div>
+      <div class="alert alert-secondary" role="alert" id="text-raw-alert">
+        <h6>Raw Response</h6>
+        <pre id='text-raw-data' class='mb-0'>No raw message data to display.</pre>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
+{% block javascript %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/6.6.2/rxjs.umd.min.js"
+  integrity="sha512-kN8bAZFoIra6Z7dDPNMD3efoGLn7QpOZgBcNpLwKIoBM5rXLVxt9nPHNo+4WrIsT0RBc/h2sXtN08n1ALxn4yw=="
+  crossorigin="anonymous"></script>
+
+<script>
+  // Once the window/scripts/etc. have all been loaded, set up our json and text websockets.
+  window.onload = (event) => {
+    setupJsonWebsocket();
+    setupTextWebsocket();
+  }
+
+  /**
+   * Sets up a vanilla JS websocket that grabs data from the widgets/json endpoint.
+   * On the connection closing, wasClean is checked- if false, a new websocket connection
+   * is created.  The incoming data is a json string, so JSON.parse is used to generate a
+   * javascript object, which is then used to update the data and raw data alerts.
+   */
+  const setupJsonWebsocket = () => {
+    // Set up initial websocket.
+    let webSocket = new WebSocket('ws://localhost:8888/ws/widgets/json/');
+
+    // onopen event- change connection status in json card's header.
+    webSocket.onopen = (e) => {
+      document.getElementById('json-status').innerHTML = "Connected."
+    }
+
+    // onmessage event- update the view of the data, and raw json data.
+    webSocket.onmessage = (e) => {
+      let data = JSON.parse(e.data)
+      document.getElementById('json-message-data').innerHTML = data.message;
+      document.getElementById('json-raw-data').innerHTML = `${JSON.stringify(data, undefined, 2)}`;
+    }
+
+    // onclose event
+    webSocket.onclose = (e) => {
+      webSocket = null;
+      if (!e.wasClean) {
+        // If the server didn't intend to close the connection, try reconnecting
+        // after 5 seconds.
+        document.getElementById('json-status').innerHTML = "Connection lost!  Attempting reconnection shortly..."
+        setTimeout(setupJsonWebsocket, 5000);
+      } else {
+        // Otherwise update the json-status with disconnected status.
+        document.getElementById('json-status').innerHTML = "Disconnected by server."
+      }
+    }
+  }
+
+  /**
+   * Sets up a vanilla JS websocket that grabs data from the widgets/text endpoint.
+   * On the connection closing, wasClean is checked- if false, a new websocket connection
+   * is created.
+   */
+  const setupTextWebsocket = () => {
+    // Set up initial websocket.
+    let webSocket = new WebSocket('ws://localhost:8888/ws/widgets/text/');
+
+    // onopen event- change connection status in text card's header.
+    webSocket.onopen = (e) => {
+      document.getElementById('text-status').innerHTML = "Connected."
+    }
+
+    // onmessage event- update the view of the data, and raw text data.
+    webSocket.onmessage = (e) => {
+      let data = e.data;
+      document.getElementById('text-message-data').innerHTML = data;
+      document.getElementById('text-raw-data').innerHTML = `${data}`;
+    }
+
+    // onclose event
+    webSocket.onclose = (e) => {
+      webSocket = null;
+      if (!e.wasClean) {
+        // If the server didn't intend to close the connection, try reconnecting
+        // after 5 seconds.
+        document.getElementById('text-status').innerHTML = "Connection lost!  Attempting reconnection shortly..."
+        setTimeout(setupJsonWebsocket, 5000);
+      } else {
+        // Otherwise update the text-status with disconnected status.
+        document.getElementById('text-status').innerHTML = "Disconnected by server."
+      }
+    }
+  }
+</script>
+{% endblock javascript %}

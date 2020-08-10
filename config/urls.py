@@ -22,6 +22,11 @@ urlpatterns = [
         TemplateView.as_view(template_name="pages/rxjs-django-auth.html"),
         name="rxjs-django-auth"
     ),
+    path(
+        "vanilla-basic/",
+        TemplateView.as_view(template_name="pages/vanilla.html"),
+        name="vanilla-basic"
+    ),
     # Django Admin, use {% url 'admin:index' %}
     path(settings.ADMIN_URL, admin.site.urls),
     # User management
